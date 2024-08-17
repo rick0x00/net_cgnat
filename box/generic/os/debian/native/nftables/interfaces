@@ -1,0 +1,22 @@
+source /etc/network/interfaces.d/*
+
+# The loopback network interface
+auto lo
+iface lo inet loopback
+
+# INTERFACE WAN
+auto $wan_interface_name
+iface $wan_interface_name inet static
+      address $wan_addr_and_cidr
+      gateway $wan_gateway
+      pre-up bash /etc/nftables/scripts/eth_tunning.sh "$wan_interface_member"
+      up ip route add default via $wan_gateway
+      up ip route add $public_net via $wan_gateway
+
+# INTERFACE LAN
+auto $lan_interface_name
+iface $lan_interface_name inet static
+      address $lan_addr_and_cidr
+      gateway $lan_gateway
+      pre-up bash /etc/nftables/scripts/eth_tunning.sh "$lan_interface_member" 
+      up ip route add $cgnat_net via $lan_gateway
