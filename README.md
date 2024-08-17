@@ -1,17 +1,12 @@
 # Network cgnat
 
-## Topology
+# Topology
+![topologia](./topologia.png)
 
-![topology](/box/generic/os/debian/native/nftables/pictures/topology_2.png)
-
-## Startup Debian Configs
-
-![startup debian config](/box/generic/os/debian/native/nftables/pictures/starttupdebiancgnat.png)
-
-## nft list table nat
-
-![nft list table nat](/box/generic/os/debian/native/nftables/pictures/nftlisttablenat.png)
-
-## Test netcat and ping
-
-![test netcat and ping](/box/generic/os/debian/native/nftables/pictures/testnetcatandping.png)
+# Building CGNAT
+```bash
+    git clone https://github.com/rick0x00/net_cgnat.git
+    cd net_cgnat/box/generic/os/debian/native/nftables/
+    vim build_cgant.sh
+    bash build_cgant.sh
+```
