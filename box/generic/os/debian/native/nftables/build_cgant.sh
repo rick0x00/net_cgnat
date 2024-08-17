@@ -9,9 +9,11 @@ line="--------------------------------------------------------------------------
 
 # WAN
 wan_interface_member="ens4"
+wan_interface_name="ens4"
 wan_cgnat_interface_name="$wan_interface_member"
 # LAN
 lan_interface_member="ens5"
+lan_interface_name="ens5"
 lan_cgnat_interface_name="$lan_interface_member"
 
 
@@ -61,6 +63,9 @@ function install_packages() {
 	#bmon -b -p ${wan_interface_name},${lan_interface_name}
 	# instalando ferramenta para configuracao de interface
 	apt install -y ethtool
+
+	# ferramenta de rede
+	apt install -y tcpdump
 
 }
 
@@ -118,6 +123,7 @@ function config_files() {
 	# enderecos publicos
 	public_net=$(ipcalc ${ip_wan_addr_1} | grep -i "Network:" | awk '{print $2}')
 	sed -i "s|\$public_net|${public_net}|" /etc/network/interfaces
+	sed -i "s|\$ip_wan_addr_1|${ip_wan_addr_1}|" /etc/network/interfaces
 	# rede CGNAT
 	cgnat_net=$(ipcalc ${net_cgnat_1} | grep -i "Network:" | awk '{print $2}')
 	sed -i "s|\$cgnat_net|${cgnat_net}|" /etc/network/interfaces
