@@ -2,91 +2,91 @@
 
 
 function config_kernel_modules(){
-    #configura modulos do kernel que serao carregados automaticamente no boot do sistema
 
-    echo "habilitando modulos de kernel"
+    echo "# enabling kernel modules"
 
-echo "
-# Responsavel pelo rastreamento de conexoes de rede.
-# mantem um registro de todas as conexões de rede ativas no sistema. Isso inclui informacoes sobre a origem, destino, protocolo, portas...
-nf_conntrack
+    echo "# Responsible for network connection tracking.
+    # Keeps a record of all active network connections on the system. This includes information about source, destination, protocol, ports...
+    nf_conntrack
 
-#Oferece suporte à tradução de enderecos (NAT) para conexões PPTP.
-nf_nat_pptp
+    # Provides support for address translation (NAT) for PPTP connections.
+    nf_nat_pptp
 
-#Realiza NAT em conexões H.323 usadas em videoconferencias e comunicacoes em tempo real.
-nf_nat_h323
+    # Performs NAT on H.323 connections used in video conferencing and real-time communications.
+    nf_nat_h323
 
-#Realiza NAT para o protocolo SIP, comumente usado em chamadas VoIP.
-nf_nat_sip
+    # Performs NAT for the SIP protocol, commonly used in VoIP calls.
+    nf_nat_sip
 
-#Realiza NAT para conexões relacionadas ao protocolo IRC.
-nf_nat_irc
+    # Performs NAT for connections related to the IRC protocol.
+    nf_nat_irc
 
-#Lida com a traducao de enderecos (NAT) para conexoes FTP.
-nf_nat_ftp
+    # Handles address translation (NAT) for FTP connections.
+    nf_nat_ftp
 
-#Suporta a traducao de enderecos (NAT) para conexoes TFTP.
-nf_nat_tftp
-" > /etc/modules-load.d/cgnat_modules.conf
+    # Supports address translation (NAT) for TFTP connections.
+    nf_nat_tftp
+    " > /etc/modules-load.d/cgnat_modules.conf
+    sed -i 's/^[[:space:]]\+//' /etc/modules-load.d/cgnat_modules.conf
 
 
-    # listando modulos ativos
+    # listening enabled modules
     #lsmod | grep --color "bonding\|nf_conntrack\|nf_nat_pptp\|nf_nat_h323\|nf_nat_sip\|nf_nat_irc\|nf_nat_ftp\|nf_nat_tftp"
 }
 
-
 function config_kernel_timeout(){
-    echo "Configurando parametros de kernel para reduzir timeout"
+    echo "Configuring kernel parameters to reduce timeout"
 
-    ## configurando parametros do kernel para tentar reduzir timeout
-    #"Os tempos padroes dos timeouts de tcp e udp sao altos para o nosso sistema de CGNAT - Marcelo Gondim"
+    ## configuring kernel parameters to try to reduce timeout
+    # "The default TCP and UDP timeout values are too high for our CGNAT system - Marcelo Gondim"
 
-echo "
-# Configuração dos timeouts para o netfilter
 
-# Timeout para conexões TCP SYN_SENT (enviando um pedido de conexão)
-net.netfilter.nf_conntrack_tcp_timeout_syn_sent = 5
+    echo "
+    # Configuration of timeouts for netfilter
 
-# Timeout para conexões TCP SYN_RECV (recebendo um pedido de conexão)
-net.netfilter.nf_conntrack_tcp_timeout_syn_recv = 5
+    # Timeout for TCP SYN_SENT connections (sending a connection request)
+    net.netfilter.nf_conntrack_tcp_timeout_syn_sent = 5
 
-# Timeout para conexões TCP estabelecidas
-net.netfilter.nf_conntrack_tcp_timeout_established = 86400 # 24 horas
+    # Timeout for TCP SYN_RECV connections (receiving a connection request)
+    net.netfilter.nf_conntrack_tcp_timeout_syn_recv = 5
 
-# Timeout para conexões TCP FIN_WAIT
-net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 10
+    # Timeout for established TCP connections
+    net.netfilter.nf_conntrack_tcp_timeout_established = 86400 # 24 hours
 
-# Timeout para conexões TCP CLOSE_WAIT
-net.netfilter.nf_conntrack_tcp_timeout_close_wait = 10
+    # Timeout for TCP FIN_WAIT connections
+    net.netfilter.nf_conntrack_tcp_timeout_fin_wait = 10
 
-# Timeout para conexões TCP LAST_ACK
-net.netfilter.nf_conntrack_tcp_timeout_last_ack = 10
+    # Timeout for TCP CLOSE_WAIT connections
+    net.netfilter.nf_conntrack_tcp_timeout_close_wait = 10
 
-# Timeout para conexões TCP TIME_WAIT
-net.netfilter.nf_conntrack_tcp_timeout_time_wait = 10
+    # Timeout for TCP LAST_ACK connections
+    net.netfilter.nf_conntrack_tcp_timeout_last_ack = 10
 
-# Timeout para conexões TCP CLOSE
-net.netfilter.nf_conntrack_tcp_timeout_close = 10
+    # Timeout for TCP TIME_WAIT connections
+    net.netfilter.nf_conntrack_tcp_timeout_time_wait = 10
 
-# Timeout máximo para retransmissões de conexões TCP
-net.netfilter.nf_conntrack_tcp_timeout_max_retrans = 300
+    # Timeout for TCP CLOSE connections
+    net.netfilter.nf_conntrack_tcp_timeout_close = 10
 
-# Timeout para conexões TCP não reconhecidas
-net.netfilter.nf_conntrack_tcp_timeout_unacknowledged = 300
+    # Maximum timeout for retransmissions of TCP connections
+    net.netfilter.nf_conntrack_tcp_timeout_max_retrans = 300
 
-# Timeout para conexões UDP
-net.netfilter.nf_conntrack_udp_timeout = 10
+    # Timeout for unacknowledged TCP connections
+    net.netfilter.nf_conntrack_tcp_timeout_unacknowledged = 300
 
-# Timeout para conexões UDP em modo streaming
-net.netfilter.nf_conntrack_udp_timeout_stream = 180
+    # Timeout for UDP connections
+    net.netfilter.nf_conntrack_udp_timeout = 10
 
-# Timeout para conexões ICMP
-net.netfilter.nf_conntrack_icmp_timeout = 10
+    # Timeout for UDP connections in streaming mode
+    net.netfilter.nf_conntrack_udp_timeout_stream = 180
 
-# Timeout para conexões genéricas
-net.netfilter.nf_conntrack_generic_timeout = 600
-" > /etc/sysctl.d/cgnat_reduce_timeout.conf
+    # Timeout for ICMP connections
+    net.netfilter.nf_conntrack_icmp_timeout = 10
+
+    # Timeout for generic connections
+    net.netfilter.nf_conntrack_generic_timeout = 600
+    " > /etc/sysctl.d/cgnat_reduce_timeout.conf
+    sed -i 's/^[[:space:]]\+//' /etc/sysctl.d/cgnat_reduce_timeout.conf
 
     # Aplicar as configurações imediatamente sem reiniciar.
     sysctl -p /etc/sysctl.d/cgnat_reduce_timeout.conf >> /dev/null
@@ -95,64 +95,65 @@ net.netfilter.nf_conntrack_generic_timeout = 600
 
 function config_kernel_parameters(){
 
-    echo "configurando parametros do kernel"
-    # Este script configura parametros  do kernel
+    echo "configuring kernel parameters"
+    # This script configures kernel parameters
 
-    # As configuracoes acima melhoram o uso de memoria, habilita o encaminhamento dos pacotes e aumenta a quantidade maxima de conntracks do sistema para 4096000.
-    # Se o conntrack estourar, seu CGNAT tera problemas e causara indisponibilidades.
+    # The above configurations improve memory usage, enable packet forwarding, and increase the system's maximum number of conntracks to 4096000.
+    # If the conntrack overflows, your CGNAT will have problems and cause outages.
 
-    # define local onde estara as configuracoes
+    # specify the location where the configurations will be stored
 
-echo "
-# Definir algoritmo de escalonamento padrão da rede para 'fq'.
-# Isso pode melhorar o desempenho da rede, especialmente em cenarios de alta carga.
-net.core.default_qdisc=fq
+    echo "
+    # Set the default network queuing discipline to 'fq'.
+    # This can improve network performance, especially in high-load scenarios.
+    net.core.default_qdisc=fq
 
-# Definir o algoritmo de controle de congestionamento TCP como 'bbr'.
-# O BBR (Bottleneck Bandwidth and Round-trip propagation time) e um algoritmo de controle de congestionamento que visa melhorar o desempenho da rede.
-net.ipv4.tcp_congestion_control=bbr
+    # Set the TCP congestion control algorithm to 'bbr'.
+    # BBR (Bottleneck Bandwidth and Round-trip propagation time) is a congestion control algorithm aimed at improving network performance.
+    net.ipv4.tcp_congestion_control=bbr
 
-# Definir o tamanho maximo do buffer de recepcao de pacotes para um valor muito alto.
-# o que permite que o sistema receba grandes quantidades de dados em buffer
-net.core.rmem_max=2147483647
+    # Set the maximum size of the packet receive buffer to a very high value.
+    # This allows the system to receive large amounts of data in the buffer.
+    net.core.rmem_max=2147483647
 
-# Definir o tamanho maximo do buffer de envio de pacotes tambem para um valor muito alto.
-net.core.wmem_max=2147483647
+    # Set the maximum size of the packet send buffer to a very high value as well.
+    net.core.wmem_max=2147483647
 
-# Configurar os tamanhos minimo, padrão e maximo do buffer de recepcao TCP.
-net.ipv4.tcp_rmem=4096 87380 2147483647
+    # Configure the minimum, default, and maximum sizes of the TCP receive buffer.
+    net.ipv4.tcp_rmem=4096 87380 2147483647
 
-# Configurar os tamanhos minimo, padrao e maximo do buffer de envio TCP.
-net.ipv4.tcp_wmem=4096 65536 2147483647
+    # Configure the minimum, default, and maximum sizes of the TCP send buffer.
+    net.ipv4.tcp_wmem=4096 65536 2147483647
 
-# Ativar o encaminhamento de pacotes entre interfaces de rede (transforma o sistema em um roteador).
-net.ipv4.conf.all.forwarding=1
+    # Enable packet forwarding between network interfaces (turns the system into a router).
+    net.ipv4.conf.all.forwarding=1
 
-# Ativar a ajuda de rastreamento de conexao de rede
-# util para protocolos que necessitam de assistencia no rastreamento de conexoes, como o FTP, SIP...
-net.netfilter.nf_conntrack_helper=1
+    # Enable connection tracking helper
+    # useful for protocols that need assistance in connection tracking, such as FTP, SIP...
+    net.netfilter.nf_conntrack_helper=1
 
-# Definir o numero de buckets (compartimentos) para a tabela de rastreamento de conexao.
-# Isso pode melhorar o desempenho quando ha muitas conexões simultaneas
-net.netfilter.nf_conntrack_buckets=512000
+    # Set the number of buckets for the connection tracking table.
+    # This can improve performance when there are many simultaneous connections.
+    net.netfilter.nf_conntrack_buckets=512000
 
-# Definir o numero maximo de entradas na tabela de rastreamento de conexao.
-net.netfilter.nf_conntrack_max=4096000
+    # Set the maximum number of entries in the connection tracking table.
+    net.netfilter.nf_conntrack_max=4096000
 
-# Definir a politica de troca do sistema para um valor baixo (10).
-# significa que o sistema tentara manter o maximo de dados na memoria fisica antes de usar a memoria de troca.
-vm.swappiness=10
-" > /etc/sysctl.d/cgnat_parameters.conf
+    # Set the system swapiness value to a low level (10).
+    # This means the system will try to keep as much data as possible in physical memory before using swap memory.
+    vm.swappiness=10
+    " > /etc/sysctl.d/cgnat_parameters.conf
+    sed -i 's/^[[:space:]]\+//' /etc/sysctl.d/cgnat_parameters.conf
 
-    # Aplicar as configurações imediatamente sem reiniciar.
+    # Apply the configurations immediately without restarting.
     sysctl -p /etc/sysctl.d/cgnat_parameters.conf >> /dev/null
 
+    # To check the number of conntracks in use:
+    # echo "checking conntracks in use"
+    # cat /proc/sys/net/netfilter/nf_conntrack_count
+    # To list the conntracks:
+    # cat /proc/net/nf_conntrack
 
-    # Para consultar a quantidade de conntracks em uso:
-    #echo "verificando contraks em uso"
-    #cat /proc/sys/net/netfilter/nf_conntrack_count
-    # Para listar as conntracks:
-    #cat /proc/net/nf_conntrack
 }
 
 

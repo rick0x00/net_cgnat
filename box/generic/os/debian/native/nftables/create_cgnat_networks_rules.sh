@@ -1,90 +1,88 @@
 #!/bin/bash
-echo "CRIANDO REGRAS PARA CLIENTES CGNAT..."
-echo "Executando: #bash /etc/nftables/scripts/create_cgnat_networks_rules.sh  \"$1\" \"$2\" \"$3\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\""
-echo "INICIANDO SCRIPT"
 
-# bash /etc/nftables/create_cgnat_networks_rules.sh "indice" "public_ip" "private_cgnat_network" "start_port" "end_port" "start_ip" "end_ip"
+echo "CREATING RULES FOR CGNAT CLIENTS..."
+echo "Running: #bash /etc/nftables/scripts/create_cgnat_networks_rules.sh \"$1\" \"$2\" \"$3\" \"$3\" \"$4\" \"$5\" \"$6\" \"$7\""
+echo "STARTING SCRIPT"
 
-#### tratando argumentos de entrada
+# bash /etc/nftables/create_cgnat_networks_rules.sh "index" "public_ip" "private_cgnat_network" "start_port" "end_port" "start_ip" "end_ip"
+
+#### Handling input arguments
 
 argx=$1
 
-# ip publico de saida do nat
+# Public IP for NAT outbound
 arg1=$2
-# rede cgnat
+# CGNAT network
 arg2=$3
 
-# numero minimo de porta
+# Minimum port number
 arg3=$4
-# numero maximo de porta
+# Maximum port number
 arg4=$5
 
-# ip de host minimo
+# Minimum host IP
 arg5=$6
-# ip de host maximo
+# Maximum host IP
 arg6=$7
 
 if [ -z $argx ] || [ -z $arg1 ] || [ -z $arg2 ] || [ -z $arg3 ] || [ -z $arg4 ] ; then
-	echo "ERROR: FALTA DE ARGUMENTOS"
-	exit 1
+    echo "ERROR: MISSING ARGUMENTS"
+     1
 fi
 
-echo "CONFIGURANDO VARIAVEIS"
-## guardando a hora
-hora_agora=$(date --iso-8601="s")
 
-# Endereco IP PUBLICO onde a rede cgnat especificada usara
+echo "CONFIGURING VARIABLES"
+## storing the current time
+current_time=$(date --iso-8601="s")
+
+# PUBLIC IP ADDRESS where the specified CGNAT network will use
 #ip_wan_addr="200.200.200.2/24"
 ip_wan_addr="$arg1"
 
-# garante que somente o endereco estara na variavel
+# ensure that only the address is in the variable
 ip_wan_addr=$(ipcalc $ip_wan_addr | grep -i "Address:" | awk '{print $2}')
 
-# rede cgant que deve ser utilizada(ip/cidr)
+# CGNAT network to be used (ip/cidr)
 #net_cgnat="100.64.1.0/24"
 net_cgnat="$arg2"
 
-# garante que somente o endereco estara na variavel
+# ensure that only the address is in the variable
 ip_cgnat_addr=$(ipcalc $net_cgnat | grep -i "Address:" | awk '{print $2}')
 
-# extrai o prefixo de rede do endereço cgnat
+# extract the network prefix from the CGNAT address
 net_cgnat_prefix=$(echo $ip_cgnat_addr | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\1.\2.\3./")
-# extrai o indice da rede do cgnat para o ip publico especificado
-net_cgnat_indice=$(echo $ip_cgnat_addr | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\3/")
+# extract the network index for the specified public IP from the CGNAT address
+net_cgnat_index=$(echo $ip_cgnat_addr | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\3/")
 
-#echo $net_cgnat_prefix
-#echo $net_cgnat_indice
-#exit
 
 ip_predef_min=$arg5
 ip_predef_max=$arg6
 
-# verificando se existe ip minimo e maximo predefinido e fazendo o que e necessario
+# Checking if minimum and maximum IPs are predefined and doing what's necessary
 if [ -n "$ip_predef_min" ] && [ -n "$ip_predef_max" ] ; then
-	echo "IP minimo e maximo predefinido"
-	ip_cgnat_addr_min=$ip_predef_min
-	ip_cgnat_addr_max=$ip_predef_max
-	ip_num_min=$(echo $ip_cgnat_addr_min | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
-	ip_num_max=$(echo $ip_cgnat_addr_max | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
-	numero_clientes=$(echo ${ip_num_max}-${ip_num_min}+1 | bc)
+    echo "Minimum and maximum IPs predefined"
+    ip_cgnat_addr_min=$ip_predef_min
+    ip_cgnat_addr_max=$ip_predef_max
+    ip_num_min=$(echo $ip_cgnat_addr_min | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
+    ip_num_max=$(echo $ip_cgnat_addr_max | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
+    num_clients=$(echo ${ip_num_max}-${ip_num_min}+1 | bc)
 else
-	echo "IP minimo e maximo NAO predefinido"
-	# extraindo host maximo e minimo
-	ip_cgnat_addr_min=$(ipcalc $net_cgnat | grep -i "HostMin" | awk '{print $2}')
-	ip_cgnat_addr_max=$(ipcalc $net_cgnat | grep -i "HostMax" | awk '{print $2}')
-	ip_num_min=$(echo $ip_cgnat_addr_min | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
-	ip_num_max=$(echo $ip_cgnat_addr_max | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
-	# quantidade de cliente no CGNAT por rede especificada
-	#numero_clientes="31"
-	#numero_clientes=$(ipcalc $net_cgnat | grep -i "Hosts" | awk '{print $2}')
-	numero_clientes=$(echo ${ip_num_max}-${ip_num_min}+1 | bc)
+    echo "Minimum and maximum IPs NOT predefined"
+    # extracting maximum and minimum hosts
+    ip_cgnat_addr_min=$(ipcalc $net_cgnat | grep -i "HostMin" | awk '{print $2}')
+    ip_cgnat_addr_max=$(ipcalc $net_cgnat | grep -i "HostMax" | awk '{print $2}')
+    ip_num_min=$(echo $ip_cgnat_addr_min | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
+    ip_num_max=$(echo $ip_cgnat_addr_max | sed -e "s/^\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b.\b\([0-9]*\)\b$/\4/")
+    # number of clients in CGNAT for specified network
+    # num_clients="31"
+    # num_clients=$(ipcalc $net_cgnat | grep -i "Hosts" | awk '{print $2}')
+    num_clients=$(echo ${ip_num_max}-${ip_num_min}+1 | bc)
+fi
 
-fi	
 ip_cgnat_addr_broadcast=$(ipcalc $net_cgnat | grep -i "Broadcast" | awk '{print $2}')
 
-#exit
 
-# numero maximo de portas que deve ser alocado para os clientes da rede especificada
+# Maximum number of ports to be allocated for clients of the specified network
 #min_port="1"
 min_port="$arg3"
 #max_port="65537"
@@ -92,113 +90,108 @@ max_port="$arg4"
 
 delta_port=$(echo ${max_port}-${min_port} | bc)
 
-# quantidade de portas reservada para cada cliente
-#delta_port_por_cliente="2048"
-delta_port_por_cliente=$(echo $delta_port/$numero_clientes | bc)
+# Number of ports reserved for each client
+#delta_port_per_client="2048"
+delta_port_per_client=$(echo $delta_port/$num_clients | bc)
 
-
-# se 1 escreve as regras, se nao somente calcula para validar se existe algum erro na quantidaded de portas por ip
+# If 1, write the rules; if not, only calculate to validate if there's any error in the number of ports per IP
 write_on="1"
-# indice do cgnat, geralmente definido pelo 3 octeto do endereco ipv4
-#indice_cgnat="$net_cgnat_indice"
-indice_cgnat="$argx"
+# Index of the CGNAT, usually defined by the 3rd octet of the IPv4 address
+#cgnat_index="$net_cgnat_index"
+cgnat_index="$argx"
 
-
-# definindo diretorio/nome de arquivos de configuracao
-file_name="regras_cgnat_${ip_cgnat_addr}.nft"
+# Defining directory/file names for configuration
+file_name="cgnat_rules_${ip_cgnat_addr}.nft"
 file_local="/etc/nftables/cgnat/"
 file_local_and_name="${file_local}${file_name}"
 
 echo "---------------------------------------"
-echo "# IP PUBLICO: ${ip_wan_addr};"
-echo "# IP REDE CGNAT: ${net_cgnat};"
-echo "# IP host Minimo Predefinido: ${ip_predef_min};"
-echo "# IP host Maximo Predefinido: ${ip_predef_max};"
-echo "# IP Host Minimo: ${ip_cgnat_addr_min};"
-echo "# IP Host Maximo: ${ip_cgnat_addr_max};"
-echo "# IP Broadcast: ${ip_cgnat_addr_broadcast};"
-echo "# Numero de Hosts: $numero_clientes;"
-echo "# Numero inicial de porta: $min_port;"
-echo "# Numero final de porta: $max_port;"
-echo "# Numero de portas uteis: $delta_port;"
-echo "# Numero de Portas por cliente: $delta_port_por_cliente;"
+echo "# PUBLIC IP: ${ip_wan_addr};"
+echo "# CGNAT NETWORK IP: ${net_cgnat};"
+echo "# Predefined Minimum Host IP: ${ip_predef_min};"
+echo "# Predefined Maximum Host IP: ${ip_predef_max};"
+echo "# Minimum Host IP: ${ip_cgnat_addr_min};"
+echo "# Maximum Host IP: ${ip_cgnat_addr_max};"
+echo "# Broadcast IP: ${ip_cgnat_addr_broadcast};"
+echo "# Number of Hosts: $num_clients;"
+echo "# Initial Port Number: $min_port;"
+echo "# Final Port Number: $max_port;"
+echo "# Number of Usable Ports: $delta_port;"
+echo "# Number of Ports per Client: $delta_port_per_client;"
 echo "---------------------------------------"
 
-#criando diretorio base
-echo "CRIANDO DIRETORIO BASE"
+# Creating base directory
+echo "CREATING BASE DIRECTORY"
 mkdir -p $file_local
 
-
 function create_rules() {
-# criando primeiras regras base para o nftables
-if [ $write_on -eq 1 ]; then
-	echo "# ----- INDICE ${indice_cgnat} -----"
-	echo "# Arquivo criando em: $hora_agora"
-	echo ""
-	echo "# IP PUBLICO: ${ip_wan_addr};"
-	echo "# IP REDE CGNAT: ${net_cgnat};"
-	echo "# IP host Minimo Predefinido: ${ip_predef_min};"
-	echo "# IP host Maximo Predefinido: ${ip_predef_max};"
-	echo "# IP Host Minimo: ${ip_cgnat_addr_min};"
-	echo "# IP Host Maximo: ${ip_cgnat_addr_max};"
-	echo "# IP Broadcast: ${ip_cgnat_addr_broadcast};"
-	echo "# Numero de Hosts: $numero_clientes;"
-	echo "# Numero inicial de porta: $min_port;"
-	echo "# Numero final de porta: $max_port;"
-	echo "# Numero de portas uteis: $delta_port;"
-	echo "# Numero de Portas por cliente: $delta_port_por_cliente;"
-	echo ""
-	echo "define WAN_IP_ADDR_${indice_cgnat} = $ip_wan_addr"
-	echo "define NET_CGNAT_${indice_cgnat} = $net_cgnat"
-	echo "add chain ip cgnat CGNAT_OUT_${indice_cgnat}"
-	echo "add chain ip cgnat CGNAT_IN_${indice_cgnat}"
-	echo "flush chain ip cgnat CGNAT_OUT_${indice_cgnat}"
-	echo "flush chain ip cgnat CGNAT_IN_${indice_cgnat}"
-	echo "add rule ip cgnat CGNAT_IN ip daddr \$WAN_IP_ADDR_${indice_cgnat} counter jump CGNAT_IN_${indice_cgnat}"
-	echo "add rule ip cgnat CGNAT_OUT ip saddr \$NET_CGNAT_${indice_cgnat} counter jump CGNAT_OUT_${indice_cgnat}"
-	echo ""
-else
-	echo "# calculando"
-fi
-
-for ((cliente=${ip_num_min}; cliente<=${ip_num_max}; cliente++)); do
-	# calculando portas
-	if [ $cliente -eq ${ip_num_min} ] ; then
-		#porta_start="1"
-		porta_start="$min_port"
-	else
-		porta_start=$(echo $porta_end+1 | bc ;)
-	fi;
-	porta_end=$(echo $porta_start+$delta_port_por_cliente-1 | bc ;)
-	# verificando porta maxima
-	if [ $porta_end -gt $max_port ] ; then
-		echo "# ERROR: limite de porta excedido($max_port): $porta_end"
-		exit 1;
-	fi;
-	# criando regras do nftables
+	# Creating initial base rules for nftables
 	if [ $write_on -eq 1 ]; then
-		echo "# CLIENTE: ${net_cgnat_prefix}${cliente}; PORTAS: ${porta_start}-${porta_end};"
-		echo "add rule ip cgnat CGNAT_IN_$indice_cgnat ip daddr \$WAN_IP_ADDR_${indice_cgnat} tcp dport ${porta_start}-${porta_end} counter dnat to ${net_cgnat_prefix}${cliente}"
-		echo "add rule ip cgnat CGNAT_IN_$indice_cgnat ip daddr \$WAN_IP_ADDR_${indice_cgnat} udp dport ${porta_start}-${porta_end} counter dnat to ${net_cgnat_prefix}${cliente}" 
-		echo "add rule ip cgnat CGNAT_OUT_$indice_cgnat ip protocol tcp ip saddr ${net_cgnat_prefix}${cliente} counter snat to \$WAN_IP_ADDR_${indice_cgnat}:${porta_start}-${porta_end}"
-		echo "add rule ip cgnat CGNAT_OUT_$indice_cgnat ip protocol udp ip saddr ${net_cgnat_prefix}${cliente} counter snat to \$WAN_IP_ADDR_${indice_cgnat}:${porta_start}-${porta_end}"
+		echo "# ----- INDEX ${cgnat_index} -----"
+		echo "# File created at: $current_time"
+		echo ""
+		echo "# PUBLIC IP: ${ip_wan_addr};"
+		echo "# CGNAT NETWORK IP: ${net_cgnat};"
+		echo "# Predefined Minimum Host IP: ${ip_predef_min};"
+		echo "# Predefined Maximum Host IP: ${ip_predef_max};"
+		echo "# Minimum Host IP: ${ip_cgnat_addr_min};"
+		echo "# Maximum Host IP: ${ip_cgnat_addr_max};"
+		echo "# Broadcast IP: ${ip_cgnat_addr_broadcast};"
+		echo "# Number of Hosts: $num_clients;"
+		echo "# Initial Port Number: $min_port;"
+		echo "# Final Port Number: $max_port;"
+		echo "# Number of Usable Ports: $delta_port;"
+		echo "# Number of Ports per Client: $delta_port_per_client;"
+		echo ""
+		echo "define WAN_IP_ADDR_${cgnat_index} = $ip_wan_addr"
+		echo "define NET_CGNAT_${cgnat_index} = $net_cgnat"
+		echo "add chain ip cgnat CGNAT_OUT_${cgnat_index}"
+		echo "add chain ip cgnat CGNAT_IN_${cgnat_index}"
+		echo "flush chain ip cgnat CGNAT_OUT_${cgnat_index}"
+		echo "flush chain ip cgnat CGNAT_IN_${cgnat_index}"
+		echo "add rule ip cgnat CGNAT_IN ip daddr \$WAN_IP_ADDR_${cgnat_index} counter jump CGNAT_IN_${cgnat_index}"
+		echo "add rule ip cgnat CGNAT_OUT ip saddr \$NET_CGNAT_${cgnat_index} counter jump CGNAT_OUT_${cgnat_index}"
+		echo ""
 	else
-		echo -n "."
+		echo "# calculating"
 	fi
-done;
 
-# finalizando regras nftables
-if [ $write_on -eq 1 ]; then
-	# ADD GRANULATED RULES
-	echo "# tudo que nao e TCP ou UDP"
-	echo "add rule ip cgnat CGNAT_OUT_$indice_cgnat counter snat to \$WAN_IP_ADDR_${indice_cgnat}"
-fi
+	for ((client=${ip_num_min}; client<=${ip_num_max}; client++)); do
+		# Calculating ports
+		if [ $client -eq ${ip_num_min} ] ; then
+			#start_port="1"
+			start_port="$min_port"
+		else
+			start_port=$(echo $end_port+1 | bc ;)
+		fi;
+		end_port=$(echo $start_port+$delta_port_per_client-1 | bc ;)
+		# Checking maximum port
+		if [ $end_port -gt $max_port ] ; then
+			echo "# ERROR: Port limit exceeded ($max_port): $end_port"
+			exit 1
+		fi;
+		# Creating nftables rules
+		if [ $write_on -eq 1 ]; then
+			echo "# CLIENT: ${net_cgnat_prefix}${client}; PORTS: ${start_port}-${end_port};"
+			echo "add rule ip cgnat CGNAT_IN_$cgnat_index ip daddr \$WAN_IP_ADDR_${cgnat_index} tcp dport ${start_port}-${end_port} counter dnat to ${net_cgnat_prefix}${client}"
+			echo "add rule ip cgnat CGNAT_IN_$cgnat_index ip daddr \$WAN_IP_ADDR_${cgnat_index} udp dport ${start_port}-${end_port} counter dnat to ${net_cgnat_prefix}${client}" 
+			echo "add rule ip cgnat CGNAT_OUT_$cgnat_index ip protocol tcp ip saddr ${net_cgnat_prefix}${client} counter snat to \$WAN_IP_ADDR_${cgnat_index}:${start_port}-${end_port}"
+			echo "add rule ip cgnat CGNAT_OUT_$cgnat_index ip protocol udp ip saddr ${net_cgnat_prefix}${client} counter snat to \$WAN_IP_ADDR_${cgnat_index}:${start_port}-${end_port}"
+		else
+			echo -n "."
+		fi
+	done;
 
+	# Finalizing nftables rules
+	if [ $write_on -eq 1 ]; then
+		# ADD GRANULATED RULES
+		echo "# everything that is not TCP or UDP"
+		echo "add rule ip cgnat CGNAT_OUT_$cgnat_index counter snat to \$WAN_IP_ADDR_${cgnat_index}"
+	fi
 }
 
-
-echo "CRIANDO REGRAS"
+echo "CREATING RULES"
 #create_rules
 create_rules > ${file_local_and_name}
 
-echo "CRIANDO ARQUIVO \"${file_local_and_name}\""
+echo "CREATING FILE \"${file_local_and_name}\""

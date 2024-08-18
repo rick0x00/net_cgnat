@@ -1,5 +1,5 @@
 #!/bin/bash
 
-echo "INICIANDO TODAS AS CONFIGURACOES PARA O CGNAT"
+echo "STARTING ALL CONFIGURATIONS FOR THE CGNAT"
 
 bash /etc/nftables/scripts/config_kernel.sh
