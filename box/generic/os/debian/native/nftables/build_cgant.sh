@@ -57,21 +57,17 @@ function install_packages() {
 	echo $line
 	echo "Install packages..."
 
-	echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free" > /etc/apt/sources.list.d/bookworm-blackports.list
+	#echo "deb http://deb.debian.org/debian bookworm-backports main contrib non-free" > /etc/apt/sources.list.d/bookworm-blackports.list
 	apt update -q
 
 	# instalando kernel atualizado
-	apt install -y -q -t bookworm-backports linux-image-amd64
-	apt install -y -q linux-image-amd64
-	#apt install -y -q linux-headers-$(uname -r)
+	#apt install -y -q -t bookworm-backports linux-image-amd64
+	apt install -y -qq linux-image-amd64
+	apt install -y -qq linux-headers-$(uname -r)
 
-	apt install -q -y nftables
-	apt install -y -q bc 
-	apt install -y -q ipcalc
-	apt install -y -q bmon
-	#bmon -b -p ${wan_interface_name},${lan_interface_name}
-	apt install -y -q ethtool
-	apt install -y -q tcpdump
+	apt install -qq -y nftables 
+	apt install -qq -y libnetfilter-conntrack* conntrackd netstat-nat collectd-core
+	apt install -y -qq bc ipcalc bmon ethtool tcpdump
 
 }
 

@@ -10,28 +10,28 @@ function config_kernel_modules(){
     nf_conntrack
 
     # Provides support for address translation (NAT) for PPTP connections.
-    nf_nat_pptp
+    #nf_conntrack_pptp
 
     # Performs NAT on H.323 connections used in video conferencing and real-time communications.
-    nf_nat_h323
+    #nf_conntrack_h323
 
     # Performs NAT for the SIP protocol, commonly used in VoIP calls.
-    nf_nat_sip
+    #nf_conntrack_sip
 
     # Performs NAT for connections related to the IRC protocol.
-    nf_nat_irc
+    #nf_conntrack_irc
 
     # Handles address translation (NAT) for FTP connections.
-    nf_nat_ftp
+    #nf_conntrack_ftp
 
     # Supports address translation (NAT) for TFTP connections.
-    nf_nat_tftp
+    #nf_conntrack_tftp
     " > /etc/modules-load.d/cgnat_modules.conf
     sed -i 's/^[[:space:]]\+//' /etc/modules-load.d/cgnat_modules.conf
 
 
     # listening enabled modules
-    #lsmod | grep --color "bonding\|nf_conntrack\|nf_nat_pptp\|nf_nat_h323\|nf_nat_sip\|nf_nat_irc\|nf_nat_ftp\|nf_nat_tftp"
+    #lsmod | grep --color "bonding\|nf_conntrack\|nf_conntrack_pptp\|nf_conntrack_h323\|nf_conntrack_sip\|nf_conntrack_irc\|nf_conntrack_ftp\|nf_conntrack_tftp"
 }
 
 function config_kernel_timeout(){
