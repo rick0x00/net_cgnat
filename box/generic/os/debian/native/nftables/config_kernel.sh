@@ -35,7 +35,7 @@ function config_kernel_modules(){
 }
 
 function config_kernel_timeout(){
-    echo "Configuring kernel parameters to reduce timeout"
+    echo "# Configuring kernel parameters to reduce timeout"
 
     ## configuring kernel parameters to try to reduce timeout
     # "The default TCP and UDP timeout values are too high for our CGNAT system - Marcelo Gondim"
@@ -95,7 +95,7 @@ function config_kernel_timeout(){
 
 function config_kernel_parameters(){
 
-    echo "configuring kernel parameters"
+    echo "# configuring kernel parameters"
     # This script configures kernel parameters
 
     # The above configurations improve memory usage, enable packet forwarding, and increase the system's maximum number of conntracks to 4096000.
