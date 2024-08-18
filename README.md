@@ -1,8 +1,8 @@
-# Network cgnat
+# Network CGNAT
 
 ## Topology
 
-![topologia](./topologia.png)
+![topology](./topology.png)
 
 ## Building CGNAT
 
