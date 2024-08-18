@@ -124,9 +124,9 @@ function config_files() {
 	echo "bash /etc/nftables/scripts/create_cgnat_networks_rules.sh \"1\" \"${ip_wan_addr_1}\" \"${net_cgnat_1}\" \"0\" \"65536\"" >> /etc/nftables/scripts/config_cgnat_networks.sh
 
 	# creating rc.local
-	echo "#!/bin/bash" >> /etc/rc.local
-	echo "bash /etc/nftables/scripts/init_cgnat.sh" >> /etc/rc.local
-	chmod +x /etc/rc.local
+	#echo "#!/bin/bash" >> /etc/rc.local
+	#echo "bash /etc/nftables/scripts/init_cgnat.sh" >> /etc/rc.local
+	#chmod +x /etc/rc.local
 }
 
 
