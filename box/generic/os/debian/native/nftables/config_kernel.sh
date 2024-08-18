@@ -128,10 +128,6 @@ function config_kernel_parameters(){
     # Enable packet forwarding between network interfaces (turns the system into a router).
     net.ipv4.conf.all.forwarding=1
 
-    # Enable connection tracking helper
-    # useful for protocols that need assistance in connection tracking, such as FTP, SIP...
-    net.netfilter.nf_conntrack_helper=1
-
     # Set the number of buckets for the connection tracking table.
     # This can improve performance when there are many simultaneous connections.
     net.netfilter.nf_conntrack_buckets=512000
