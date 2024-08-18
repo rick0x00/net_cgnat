@@ -10,7 +10,7 @@ iface $wan_interface_name inet static
       address $wan_addr_and_cidr
       gateway $wan_gateway
       pre-up bash /etc/nftables/scripts/eth_tunning.sh "$wan_interface_member"
-      post-up ip addr add $ip_wan_addr_1 via $wan_interface_name
+      post-up ip addr add $ip_wan_addr_1 dev $wan_interface_name
 
 # INTERFACE LAN
 auto $lan_interface_name
