@@ -136,6 +136,9 @@ function execute_configs() {
 	echo "enabling nftables"
 	systemctl enable nftables
 
+	echo "apply interface configuration"
+	systemctl restart networking
+
 	echo "Creating CGNA rules..."
 	bash /etc/nftables/scripts/config_cgnat_networks.sh
 
